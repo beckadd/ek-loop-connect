@@ -5,6 +5,8 @@
 - FlowSensor (a type of sensor): the flow rate sensor of the pump.
 */
 
+use hidapi::HidDevice;
+
 pub struct TempSensor {
     temp: i64
 }
@@ -20,22 +22,11 @@ pub struct Fan {
     rpm: f64,
     pwm: f64,
 
-    fan_channel: FanChannel
+    fan_channel: [u8; 2]
 }
 
-pub enum FanChannel {
-    F1(u8, u8),
-    F2(u8, u8),
-    F3(u8, u8),
-    F4(u8, u8), 
-    F5(u8, u8),
-    F6(u8, u8)
-}
-
-/*
-* request size is 63 bytes (zero-padded)
-*/
 pub struct EKLoopConnectDevice {
+    hid_device: HidDevice,
     pub fans: [Fan; 6],
     pub temperature_sensors: [TempSensor; 3],
     pub flow_sensor: FlowSensor,
@@ -43,22 +34,34 @@ pub struct EKLoopConnectDevice {
 }
 
 impl EKLoopConnectDevice {
-
-
-    fn __sensor_response_object(&self) {
+    fn sensor_response_object(&self) {
     }
 
     fn read_sensors(&self) {} 
 }
 
+pub fn initialize_EKLCDevice(hid_device: HidDevice) -> EKLoopConnectDevice {
+    EKLoopConnectDevice { hid_device: hid_device, fans: (), temperature_sensors: (), flow_sensor: (), coolant_sensor: () }
+}
 pub fn read_sensors() {
-    let mut request: [u8; 63] = [0; 63];
-
-    request[0..6].swap_with_slice(&mut [0x10, 0x12, 0x08, 0xaa, 0x01, 0x03]);
-    request[6..8].swap_with_slice(&mut [0xa2, 0x20]); //sensor channel read req
-    request[8..10].swap_with_slice(&mut [0x00, 0x20]);
-    request[10..12].swap_with_slice(&mut [0x66, 0x67]); //sensor channel doesn't care
+    let request = generate_request([0xa2, 0x20]);
 
     // Todo: Send to the HID thing and then receive, parse response
-    println!("{:?}", request)
+}
+
+pub fn read_fan(fan_channel: [u8; 2]) {
+    let request =generate_request(fan_channel);
+}
+
+///TODO: This needs to be made a private function
+pub fn generate_request(fan_channel: [u8; 2]) -> [u8; 64] {
+    let hid_request: [u8; 64] = [0; 64]; // HIDAPI requires 0x00 at byte 1
+
+    // section conforming to the EK spec (request size is 63 bytes (zero-padded))
+    hid_request[1..][0..6].swap_with_slice(&mut [0x10, 0x12, 0x08, 0xaa, 0x01, 0x03]);
+    hid_request[1..][6..8].swap_with_slice(&mut fan_channel);
+    hid_request[1..][8..10].swap_with_slice(&mut [0x00, 0x20]);
+    hid_request[1..][10..12].swap_with_slice(&mut [0x66, 0x67]); //sensor channel doesn't care
+
+    hid_request
 }
