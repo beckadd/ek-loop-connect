@@ -7,4 +7,3 @@ Shoutotu to @pavelherr, who did most of the reverse engineering work to figure o
 [Protocol description](protocol.md)
 
 [Kernel driver](module/)
-
