@@ -1,0 +1,12 @@
+{
+  "name": "ek-loop-connect",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "repository": "git@github.com:beckadd/ek-loop-connect.git",
+  "author": "Beck Addison <bsa10@duke.edu>",
+  "license": "MIT",
+  "private": false,
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.0.0-rc.10"
+  }
+}
